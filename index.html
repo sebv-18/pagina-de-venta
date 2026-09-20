@@ -31,12 +31,12 @@
 
     <!-- ==============================
          HEADER / ENCABEZADO
-    ================________________ -->
+    ================================ -->
     <header class="relative z-10 pt-8 pb-6 px-4 text-center border-b border-slate-900">
         
         <!-- Logo circular -->
         <div class="w-20 h-20 mx-auto mb-3 rounded-full p-[2px] bg-gradient-to-tr from-pink-500 to-purple-600 shadow-lg shadow-pink-500/20">
-            <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&auto=format&fit=crop&q=80" alt="Logo" class="w-full h-full object-cover rounded-full">
+            <img src="portada.jpg" alt="Logo" class="w-full h-full object-cover rounded-full">
         </div>
 
         <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-200">
@@ -139,7 +139,7 @@
 
             <!-- Contenido del Panel -->
             <div class="py-4 overflow-y-auto flex-grow space-y-5">
-                <!-- Formulario para agregar producto -->
+                <!-- Formulario para agregar producto con selector de archivo -->
                 <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-white">Agregar Nuevo Producto</h4>
                     <div>
@@ -162,8 +162,8 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">Link de la Foto (URL):</label>
-                        <input type="text" id="admin-imagen" placeholder="https://images.unsplash.com/..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-pink-500">
+                        <label class="block text-[11px] text-slate-400 mb-1">Seleccionar Foto del Computador:</label>
+                        <input type="file" id="admin-imagen-file" accept="image/*" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-pink-500 file:text-slate-950 hover:file:bg-pink-400 cursor-pointer">
                     </div>
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-1">Descripción corta (Tallas, material):</label>
@@ -259,11 +259,11 @@
             },
             { 
                 id: 8, 
-                nombre: "Polerón Oversize Aesthetic (Sale)", 
+                nombre: "Polera Chile", 
                 categoria: "sale", 
-                precio: 12990, 
+                precio: 11990, 
                 descripcion: "Con gorro y friza interior. Liquidación stock.", 
-                imagen: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&auto=format&fit=crop&q=80" 
+                imagen: "polera chile.jpg"
             }
         ];
 
@@ -408,7 +408,7 @@
             });
             msg += `\n*Total estimado: $${total.toLocaleString("es-CL")}*\n¿Me confirmas disponibilidad y pago por favor?`;
 
-            const numeroWsp = "56912345678"; // Número de WhatsApp de la tienda
+            const numeroWsp = "56912345678";
             window.open(`https://wa.me/${numeroWsp}?text=${encodeURIComponent(msg)}`, "_blank");
             
             carrito = [];
@@ -443,7 +443,7 @@
                 listaAdmin.innerHTML += `
                     <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-2.5 rounded-xl text-xs gap-2">
                         <div class="flex items-center gap-2 overflow-hidden">
-                            <img src="${p.imagen}" class="w-8 h-8 object-cover rounded-lg shrink-0">
+                            <img src="${p.imagen}" class="w-8 h-8 object-cover rounded-lg shrink-0" onerror="this.src='https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80'">
                             <div class="truncate">
                                 <p class="text-white font-medium truncate">${p.nombre}</p>
                                 <p class="text-[10px] text-pink-400 font-bold">$${Number(p.precio).toLocaleString("es-CL")}</p>
@@ -463,33 +463,43 @@
             const nombre = document.getElementById("admin-nombre").value.trim();
             const categoria = document.getElementById("admin-categoria").value;
             const precio = Number(document.getElementById("admin-precio").value);
-            const imagen = document.getElementById("admin-imagen").value.trim();
             const descripcion = document.getElementById("admin-desc").value.trim();
+            const inputFile = document.getElementById("admin-imagen-file");
 
-            if (!nombre || !precio || !imagen) {
-                alert("Por favor completa el nombre, precio y el link de la foto.");
+            if (!nombre || !precio) {
+                alert("Por favor completa al menos el nombre y el precio.");
                 return;
             }
 
-            const nuevo = {
-                id: Date.now(),
-                nombre,
-                categoria,
-                precio,
-                imagen,
-                descripcion
-            };
+            if (inputFile.files && inputFile.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const nuevo = {
+                        id: Date.now(),
+                        nombre,
+                        categoria,
+                        precio,
+                        imagen: e.target.result, // Guarda la imagen convertida
+                        descripcion
+                    };
 
-            productos.unshift(nuevo);
-            guardarEnMemoria();
-            renderizarListaAdmin();
+                    productos.unshift(nuevo);
+                    guardarEnMemoria();
+                    renderizarListaAdmin();
+                    limpiarFormularioAdmin();
+                    alert("¡Producto publicado con éxito!");
+                };
+                reader.readAsDataURL(inputFile.files[0]);
+            } else {
+                alert("Por favor selecciona una foto de tu computador para el producto.");
+            }
+        }
 
+        function limpiarFormularioAdmin() {
             document.getElementById("admin-nombre").value = "";
             document.getElementById("admin-precio").value = "";
-            document.getElementById("admin-imagen").value = "";
+            document.getElementById("admin-imagen-file").value = "";
             document.getElementById("admin-desc").value = "";
-
-            alert("¡Producto publicado con éxito!");
         }
 
         function eliminarProductoTotal(id) {
@@ -500,8 +510,8 @@
             }
         }
 
-        // Cargar vista inicial
-        renderizarProductos(productos);
+        // --- INICIALIZAR LA PÁGINA AL CARGAR ---
+        filtrarProductos('todos', document.querySelector('.filtro-btn'));
     </script>
 </body>
 </html>
